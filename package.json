@@ -5,6 +5,7 @@
   "workspaces": [
     "packages/*"
   ],
+  "packageManager": "pnpm@9.8.0+sha256.56a9e76b51796ca7f73b85e44cf83712862091f4d498c0ce4d5b7ecdc6ba18f7",
   "description": "Off-the-shelf Trustless HTTP Server for Content-Addressable Data",
   "scripts": {
     "format": "prettier --write '**/*.{js,ts,yml,json}' --ignore-path .gitignore",
@@ -16,9 +17,10 @@
     "build": "pnpm -r --if-present run build"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.17.4",
     "lint-staged": "^15.4.3",
     "prettier": "2.8.3",
-    "typescript": "5.8.2"
+    "typescript": "^5.8.2"
   },
   "prettier": {
     "trailingComma": "es5",
@@ -33,7 +35,16 @@
     "depcheck": "^1.4.7",
     "typedoc-plugin-missing-exports": "^3.1.0"
   },
-  "keywords": ["ipfs", "cloud", "index"],
+  "keywords": [
+    "serverless",
+    "index",
+    "cloud",
+    "elastic",
+    "verifiable",
+    "content",
+    "addressable",
+    "ipfs"
+  ],
   "author": "Vasco Santos",
   "license": "Apache-2.0 OR MIT"
 }

@@ -1,0 +1,30 @@
+{
+  "name": "@nginx-for-ipfs/eslint-config",
+  "version": "1.0.0",
+  "description": "eslint rules for nginx-for-ipfs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vasco-santos/nginx-for-ipfs.git",
+    "directory": "packages/eslint-config"
+  },
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint '**/*.{js,ts}'"
+  },
+  "author": "Vasco Santos",
+  "license": "Apache-2.0 OR MIT",
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.9.1",
+    "@typescript-eslint/parser": "^6.9.1",
+    "eslint-plugin-jsdoc": "^46.8.2"
+  },
+  "peerDependencies": {
+    "eslint": "^8.56.0"
+  },
+  "eslintConfig": {
+    "extends": "./index.js",
+    "env": {
+      "node": true
+    }
+  }
+}

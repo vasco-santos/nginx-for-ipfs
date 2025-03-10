@@ -1,0 +1,78 @@
+{
+  "name": "@nginx-for-ipfs/index",
+  "version": "3.3.5",
+  "description": "The index client to use nginx for IPFS",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vasco-santos/nginx-for-ipfs.git",
+    "directory": "packages/index"
+  },
+  "author": "Vasco Santos",
+  "license": "Apache-2.0 OR MIT",
+  "type": "module",
+  "types": "dist/src/index.d.ts",
+  "main": "src/index.js",
+  "scripts": {
+    "attw": "attw --pack .",
+    "lint": "eslint '**/*.{js,ts}' && prettier --check '**/*.{js,ts,yml,json}' --ignore-path ../../.gitignore",
+    "build": "tsc --build",
+    "dev": "tsc --build --watch",
+    "test": "npm run test:all",
+    "test:all": "run-s test:browser test:node",
+    "test:node": "hundreds -r html -r text mocha 'test/**/!(*.browser).test.js' -n experimental-vm-modules -n no-warnings",
+    "test:browser": "playwright-test 'test/**/!(*.node).test.js'",
+    "rc": "npm version prerelease --preid rc"
+  },
+  "typesVersions": {
+    "*": {
+      "types": [
+        "dist/src/types.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist/src/**/*.js",
+    "dist/src/**/*.js.map",
+    "dist/src/**/*.d.ts",
+    "dist/src/**/*.d.ts.map"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "@nginx-for-ipfs/eslint-config": "workspace:^",
+    "hundreds": "^0.0.9",
+    "mocha": "^10.2.0",
+    "npm-run-all": "^4.1.5",
+    "playwright-test": "^12.3.4",
+    "typescript": "5.2.2"
+  },
+  "eslintConfig": {
+    "extends": [
+      "@nginx-for-ipfs/eslint-config"
+    ],
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    },
+    "env": {
+      "mocha": true
+    },
+    "ignorePatterns": [
+      "dist",
+      "coverage",
+      "src/types.js"
+    ]
+  },
+  "depcheck": {
+    "specials": [
+      "bin"
+    ],
+    "ignores": [
+      "@types/*",
+      "assert",
+      "c8",
+      "@nginx-for-ipfs/eslint-config"
+    ]
+  },
+  "engines": {
+    "node": ">=16.15"
+  }
+}

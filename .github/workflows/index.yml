@@ -1,0 +1,38 @@
+name: Index Client
+env:
+  CI: true
+  FORCE_COLOR: 1
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/index/**'
+      - 'packages/eslint-config/**'
+      - '.github/workflows/index.yml'
+      - 'pnpm-lock.yaml'
+  pull_request:
+    paths:
+      - 'packages/index/**'
+      - 'packages/eslint-config/**'
+      - '.github/workflows/index.yml'
+      - 'pnpm-lock.yaml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node_version:
+          - 18
+          - 20
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node_version }}
+          cache: 'pnpm'
+      - run: pnpm install
+      - run: pnpm run build
+      - run: pnpm -r --filter @nginx-for-ipfs/index run lint
+      # - run: pnpm -r --filter @nginx-for-ipfs/index run attw
