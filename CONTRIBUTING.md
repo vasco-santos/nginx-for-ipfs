@@ -1,6 +1,6 @@
 # Contributing
 
-Join in. All welcome! `nginx-for-ipfs` is open-source. The code is dual-licensed under [MIT + Apache 2.0](license.md)
+Join in. All welcome! `hash-stream` is open-source. The code is dual-licensed under [MIT + Apache 2.0](license.md)
 
 This project uses node v18 and `pnpm`. It's a monorepo that use [pnpm workspaces](https://pnpm.io/workspaces) to handle resolving dependencies between the local `packages/*` folders.
 

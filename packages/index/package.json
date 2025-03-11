@@ -1,10 +1,10 @@
 {
-  "name": "@nginx-for-ipfs/index",
+  "name": "@hash-stream/index",
   "version": "3.3.5",
   "description": "The index client to use nginx for IPFS",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vasco-santos/nginx-for-ipfs.git",
+    "url": "https://github.com/vasco-santos/hash-stream.git",
     "directory": "packages/index"
   },
   "author": "Vasco Santos",
@@ -38,7 +38,7 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "@nginx-for-ipfs/eslint-config": "workspace:^",
+    "@hash-stream/eslint-config": "workspace:^",
     "hundreds": "^0.0.9",
     "mocha": "^10.2.0",
     "npm-run-all": "^4.1.5",
@@ -47,7 +47,7 @@
   },
   "eslintConfig": {
     "extends": [
-      "@nginx-for-ipfs/eslint-config"
+      "@hash-stream/eslint-config"
     ],
     "parserOptions": {
       "project": "./tsconfig.json"
@@ -69,7 +69,7 @@
       "@types/*",
       "assert",
       "c8",
-      "@nginx-for-ipfs/eslint-config"
+      "@hash-stream/eslint-config"
     ]
   },
   "engines": {
