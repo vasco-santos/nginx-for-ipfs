@@ -1,10 +1,10 @@
 {
-  "name": "@nginx-for-ipfs/eslint-config",
+  "name": "@hash-stream/eslint-config",
   "version": "1.0.0",
-  "description": "eslint rules for nginx-for-ipfs",
+  "description": "eslint rules for hash-stream",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vasco-santos/nginx-for-ipfs.git",
+    "url": "https://github.com/vasco-santos/hash-stream.git",
     "directory": "packages/eslint-config"
   },
   "main": "index.js",

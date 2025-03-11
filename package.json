@@ -1,5 +1,5 @@
 {
-  "name": "nginx-for-ipfs",
+  "name": "hash-stream",
   "version": "0.0.0",
   "private": true,
   "workspaces": [
