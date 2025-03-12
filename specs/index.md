@@ -152,21 +152,21 @@ interface Index {
   findBlockLocation(multihash: Multihash): BlockLocation | null
 
   // Find all containers that hold a given content CID
-  findContainers(contentCID: CID): ContainerLocation[]
+  findContainers(contentCID: Link<any>): ContainerLocation[]
 
   // Get the index type metadata (block-level or multi-level)
   getType(): 'index/block@0.1' | 'index/sharded/dag@0.1'
 }
 
 type BlockLocation = {
-  container: CID
+  container: Link<any>
   offset: Int
   length: Int
 }
 
 type ContainerLocation = {
-  content: CID
-  shards: CID[]
+  content: Link<any>
+  shards: Link<any>[]
 }
 ```
 
@@ -177,14 +177,14 @@ A structured lookup mechanism for resolving content locations.
 ```ts
 interface ContentResolver {
   // Resolve content by its root CID, returning all known locations
-  resolveContent(contentCID: CID): ContentLocation | null
+  resolveContent(contentCID: Link<any>): ContentLocation | null
 
   // Resolve a block inside a content DAG, if hints are available
-  resolveBlock(blockCID: CID, contentCID?: CID): BlockLocation | null
+  resolveBlock(blockCID: Link<any>, contentCID?: Link<any>): BlockLocation | null
 }
 
 type ContentLocation = {
-  contentCID: CID
+  contentCID: Link<any>
   containers: ContainerLocation[]
 }
 ```
@@ -195,12 +195,12 @@ type ContentLocation = {
 
 ```ts
 interface CarV2IndexStore {
-  loadIndex(containerCID: CID): CarV2Index | null
-  storeIndex(containerCID: CID, index: CarV2Index): void
+  loadIndex(containerCID: Link<any>): CarV2Index | null
+  storeIndex(containerCID: Link<any>, index: CarV2Index): void
 }
 
 type CarV2Index = {
-  container: CID
+  container: Link<any>
   blocks: Record<Multihash, BlockLocation>
 }
 ```
