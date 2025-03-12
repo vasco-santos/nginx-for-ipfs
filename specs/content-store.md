@@ -46,6 +46,7 @@ interface ContentStore {
   getContent(contentLocation: ContentLocation): AsyncIterable<Uint8Array>
 }
 
+// Link https://ipld.io/specs/codecs/dag-json/spec/#links
 type BlockLocation = {
   container: Link<any>
   offset: Int
