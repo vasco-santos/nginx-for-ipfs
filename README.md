@@ -1,5 +1,7 @@
 # hash-stream
 
+> Building blocks to run a off-the-shelf Trustless HTTP Server for Content-Addressable Data
+
 ## Contributing
 
 All welcome! `hash-stream` is open-source. See the [contributing guide](./CONTRIBUTING.md)
