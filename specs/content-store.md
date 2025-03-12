@@ -47,28 +47,14 @@ interface ContentStore {
 }
 
 type BlockLocation = {
-  container: CID
+  container: Link<any>
   offset: Int
   length: Int
 }
 
 type ContentLocation = {
-  contentCID: CID
+  contentCID: Link<any>
   containers: ContainerLocation[]
-}
-```
-
-### Verifiable Content Interface
-
-The VerifiableContent interface ensures that retrieved data is verifiable and correctly encoded. It takes content identifiers (CIDs) and retrieves the necessary locations through the Index before accessing the Content Store in order to give back the content.
-
-```ts
-interface VerifiableContent {
-  // Retrieve a block as a raw encoded Block
-  getVerifiableBlock(blockCID: CID): Block | null
-
-  // Retrieve content as a CAR file with all blocks from the specified locations
-  getVerifiableContent(contentCID: CID): AsyncIterable<CAR>
 }
 ```
 
