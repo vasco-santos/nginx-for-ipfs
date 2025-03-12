@@ -1,7 +1,7 @@
 {
   "name": "@hash-stream/index",
-  "version": "3.3.5",
-  "description": "The index client to use nginx for IPFS",
+  "version": "0.0.0",
+  "description": "The index client to use hash-stream",
   "repository": {
     "type": "git",
     "url": "https://github.com/vasco-santos/hash-stream.git",
@@ -23,10 +23,46 @@
     "test:browser": "playwright-test 'test/**/!(*.node).test.js'",
     "rc": "npm version prerelease --preid rc"
   },
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./block-level-index": "./dist/src/block-level-index.js",
+    "./multiple-level-index": "./dist/src/multiple-level-index.js",
+    "./record/block": "./dist/src/record/block.js",
+    "./record/sharded-dag": "./dist/src/record/sharded-dag.js",
+    "./store/memory-block": "./dist/src/store/memory-block.js",
+    "./store/memory-sharded-dag": "./dist/src/store/memory-sharded-dag.js",
+    "./store/fs-block": "./dist/src/store/fs-block.js",
+    "./store/fs-sharded-dag": "./dist/src/store/fs-sharded-dag.js",
+    "./types": "./dist/src/api.js"
+  },
   "typesVersions": {
     "*": {
       "types": [
-        "dist/src/types.d.ts"
+        "dist/src/api"
+      ],
+      "block-level-index": [
+        "dist/src/block-level-index.d.ts"
+      ],
+      "multiple-level-index": [
+        "dist/src/multiple-level-index.d.ts"
+      ],
+      "record/block": [
+        "dist/src/record/block.d.ts"
+      ],
+      "record/sharded-dag": [
+        "dist/src/record/sharded-dag.d.ts"
+      ],
+      "store/memory-block": [
+        "dist/src/store/memory-block.d.ts"
+      ],
+      "store/memory-sharded-dag": [
+        "dist/src/store/memory-sharded-dag.d.ts"
+      ],
+      "store/fs-block": [
+        "dist/src/store/fs-block.d.ts"
+      ],
+      "store/fs-sharded-dag": [
+        "dist/src/store/fs-sharded-dag.d.ts"
       ]
     }
   },
@@ -36,10 +72,25 @@
     "dist/src/**/*.d.ts",
     "dist/src/**/*.d.ts.map"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "@ipld/dag-cbor": "^9.2.2",
+    "@ipld/dag-json": "^10.2.3",
+    "multiformats": "^13.3.2",
+    "uint8arrays": "^5.1.0"
+  },
   "devDependencies": {
+    "@ipld/car": "^5.4.0",
+    "@ipld/unixfs": "^3.0.0",
     "@hash-stream/eslint-config": "workspace:^",
+    "@storacha/one-webcrypto": "^1.0.1",
+    "@types/assert": "^1.5.6",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^22.13.10",
+    "@web3-storage/blob-index": "^1.0.5",
+    "assert": "^2.0.0",
+    "c8": "^7.13.0",
     "hundreds": "^0.0.9",
+    "ipfs-car": "^2.0.0",
     "mocha": "^10.2.0",
     "npm-run-all": "^4.1.5",
     "playwright-test": "^12.3.4",
