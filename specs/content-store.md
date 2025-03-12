@@ -59,6 +59,20 @@ type ContentLocation = {
 }
 ```
 
+### Verifiable Content Interface
+
+The VerifiableContent interface ensures that retrieved data is verifiable and correctly encoded. It takes content identifiers (CIDs) and retrieves the necessary locations through the Index before accessing the Content Store in order to give back the content.
+
+```ts
+interface VerifiableContent {
+  // Retrieve a block as a raw encoded Block
+  getVerifiableBlock(blockCID: Link<any>): Promise<Block | null>
+
+  // Retrieve content as a CAR file with all blocks from the specified locations
+  getVerifiableContent(contentCID: Link<any>): AsyncIterable<CAR>
+}
+```
+
 - **Blocks**: Resolved via the Index to determine `BlockLocation`, then retrieved as raw-encoded objects from `ContentStore.getBlock`.
 - **Content**: Resolved via the Index to determine `ContentLocation`, then retrieved as a CAR file by reading all blocks from `ContentStore.getContent`.
 

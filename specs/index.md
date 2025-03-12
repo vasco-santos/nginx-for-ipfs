@@ -129,8 +129,8 @@ The Index Store provides methods for retrieving and storing indexed content.
 
 ```ts
 interface IndexStore {
-  get(hash: Multihash): IndexEntry | null
-  set(entry: IndexEntry): void
+  get(hash: Multihash): Promise<IndexEntry | null>
+  set(entry: IndexEntry): Promise<void>
 }
 
 type IndexEntry = Variant<{
@@ -149,17 +149,17 @@ This interface defines how an index is queried to locate content or specific blo
 ```ts
 interface Index {
   // Find the location of a given block by its multihash
-  findBlockLocation(multihash: Multihash): BlockLocation | null
+  findBlockLocation(multihash: Multihash): Promise<BlockLocation | null>
 
   // Find all containers that hold a given content CID
-  findContainers(contentCID: Link<any>): ContainerLocation[]
+  findContainers(contentCID: Link<any>): Promise<ContainerLocation[]>
 
   // Get the index type metadata (block-level or multi-level)
   getType(): 'index/block@0.1' | 'index/sharded/dag@0.1'
 }
 
 type BlockLocation = {
-  container: Link<any>
+  container: Multihash
   offset: Int
   length: Int
 }
@@ -177,10 +177,13 @@ A structured lookup mechanism for resolving content locations.
 ```ts
 interface ContentResolver {
   // Resolve content by its root CID, returning all known locations
-  resolveContent(contentCID: Link<any>): ContentLocation | null
+  resolveContent(contentCID: Link<any>): Promise<ContentLocation | null>
 
   // Resolve a block inside a content DAG, if hints are available
-  resolveBlock(blockCID: Link<any>, contentCID?: Link<any>): BlockLocation | null
+  resolveBlock(
+    blockCID: Link<any>,
+    contentCID?: Link<any>
+  ): Promise<BlockLocation | null>
 }
 
 type ContentLocation = {
