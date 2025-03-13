@@ -51,7 +51,7 @@ The design of the indexing system considers the following key aspects:
 
 A Block-level index maps a given block multihash to the location where the server can read the bytes of the block. This indexing strategy enables fast responses for clients requesting verifiable blocks by a block CID. However, in some setups, implementing this indexing strategy may be prohibitively expensive (e.g., in databases like DynamoDB) or limited (e.g., due to rate limiting when indexing thousands of blocks in parallel from large containers). Furthermore, these indexes alone are insufficient to serve fully verifiable containers, as they do not maintain relationships between blocks in a DAG.
 
-#### Block-level index Schema
+#### Block-level Type index Schema
 
 ```ts
 type Index = Variant<{
@@ -74,7 +74,7 @@ type Multihash = bytes
 
 A Multiple-level index maps a content multihash to a list of verifiable package CIDs containing the blocks that form the DAG for that content (and where they are positioned). This approach allows serving fully verifiable containers efficiently while reducing index store operations by several orders of magnitude. However, this index alone cannot serve block-level requests unless the request includes hints about the content CID context.
 
-#### Multiple-level index Schema
+#### Multiple-level Type index Schema
 
 ```ts
 type Index = Variant<{
@@ -128,8 +128,10 @@ Note that Blob naming is used to ensure consistency with Storacha naming ensurin
 The Index Store provides methods for retrieving and storing indexed content.
 
 ```ts
+import { MultihashDigest } from 'multiformats'
+
 interface IndexStore {
-  get(hash: Multihash): Promise<IndexEntry | null>
+  get(hash: MultihashDigest): Promise<IndexEntry | null>
   set(entry: IndexEntry): Promise<void>
 }
 
@@ -147,12 +149,17 @@ The implementation of the Index interface is fully empowered to decide the Index
 This interface defines how an index is queried to locate content or specific blocks.
 
 ```ts
-interface Index {
-  // Find the location of a given block by its multihash
-  findBlockLocation(multihash: Multihash): Promise<BlockLocation | null>
+import { MultihashDigest } from 'multiformats'
 
-  // Find all containers that hold a given content CID
-  findContainers(contentCID: Link<any>): Promise<ContainerLocation[]>
+interface Index {
+  // Find the location of a given block by its multihash and optinially the content CID that the block belongs to as context
+  findBlockLocation(
+    multihash: MultihashDigest,
+    contentCID?: UnknownLink
+  ): Promise<BlockLocation | null>
+
+  // Find all containers that hold a given content hash
+  findContainers(multihash: MultihashDigest): Promise<ContentLocation | null>
 
   // Get the index type metadata (block-level or multi-level)
   getType(): 'index/block@0.1' | 'index/sharded/dag@0.1'
@@ -164,31 +171,10 @@ type BlockLocation = {
   length: Int
 }
 
-type ContainerLocation = {
-  content: Link<any>
-  shards: Link<any>[]
-}
-```
-
-### Content Resolver Interface
-
-A structured lookup mechanism for resolving content locations.
-
-```ts
-interface ContentResolver {
-  // Resolve content by its root CID, returning all known locations
-  resolveContent(contentCID: Link<any>): Promise<ContentLocation | null>
-
-  // Resolve a block inside a content DAG, if hints are available
-  resolveBlock(
-    blockCID: Link<any>,
-    contentCID?: Link<any>
-  ): Promise<BlockLocation | null>
-}
-
+// Location details for content stored across multiple containers
 type ContentLocation = {
-  contentCID: Link<any>
-  containers: ContainerLocation[]
+  contentCID: UnknownLink
+  shards: MultihashDigest[]
 }
 ```
 
@@ -210,7 +196,7 @@ type CarV2Index = {
 
 ## Relationship Between Components
 
-1. A client requests content using the Content Resolver.
+1. A client requests content using a give Content Resolver.
 2. The Content Resolver queries the appropriate Index (block-level or multi-level).
 3. The Index provides block or container locations.
 4. If needed, the system loads CarV2 indexes for efficient lookups.
@@ -239,7 +225,7 @@ For content retrieval, see the [Content Store Specification](./content-store.md)
 
 Different storage backends can be used to store these index formats while fulfilling the schema. The critical queries are determining where a given block is stored (container CID and byte range) or locating all the containers that represent a DAG identified by a given content CID.
 
-### Block-level Index Implementation
+### Top-level Index Implementation (block level)
 
 - **Filesystem-based store (path encoding):**
   - Example: `block...5/index/block@0.1/car..1/0-128`
@@ -274,7 +260,7 @@ Different storage backends can be used to store these index formats while fulfil
 ### Multiple-level index implementation guide
 
 - **Linked CARv2 Indexes:**
-  - Uses references to precomputed and stored CARv2 indexes externally stored.
+  - Uses references to precomputed and stored CARv2 indexes externally stored. It should be keyed by content multihash for querying.
   - Example:
     ```json
     {
@@ -294,7 +280,7 @@ Different storage backends can be used to store these index formats while fulfil
   - **Tradeoffs:**
     - Not efficient to use for querying for individual blocks in a given DAG, as individual external indexes need to be retrieved and parsed.
 - **Embedded Slice Mapping in Index:**
-  - Embeds block locations directly in the index file. For instance, within a CAR file that encoded the index data.
+  - Embeds block locations directly in the index file. For instance, within a CAR file that encoded the index data. It should be keyed by content multihash for querying.
   - Example:
     ```json
     {
