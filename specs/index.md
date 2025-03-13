@@ -54,13 +54,15 @@ A Block-level index maps a given block multihash to the location where the serve
 #### Block-level Type index Schema
 
 ```ts
-type Index = Variant<{
-  'index/block@0.1': BlockIndex
+type IndexEntry = Variant<{
+  'index/block@0.1': BlockIndexEntry
 }>
 
-type BlockIndex = {
+type BlockIndexEntry = {
+  // hash digest of the block
+  multihash: Multihash
   // hash digest of the container containing the block
-  digest: Multihash
+  container: Multihash
   // Slice offset
   offset: Int
   // Slice size in bytes
@@ -77,11 +79,11 @@ A Multiple-level index maps a content multihash to a list of verifiable package 
 #### Multiple-level Type index Schema
 
 ```ts
-type Index = Variant<{
-  "index/sharded/dag@0.1": ShardedDAGIndex
+type IndexEntry = Variant<{
+  "index/sharded/dag@0.1": ShardedDAGIndexEntry
 }>
 
-type ShardedDAGIndex = {
+type ShardedDAGIndexEntry = {
   // content root CID
   content: Link<any>
   // links to indexes that contain blocks of the content DAG
@@ -132,12 +134,12 @@ import { MultihashDigest } from 'multiformats'
 
 interface IndexStore {
   get(hash: MultihashDigest): Promise<IndexEntry | null>
-  set(entry: IndexEntry): Promise<void>
+  set(hash: MultihashDigest, entry: IndexEntry): Promise<void>
 }
 
 type IndexEntry = Variant<{
-  'index/block@0.1': BlockIndex
-  'index/sharded/dag@0.1': ShardedDAGIndex
+  'index/block@0.1': BlockIndexEntry
+  'index/sharded/dag@0.1': ShardedDAGIndexEntry
 }>
 ```
 
