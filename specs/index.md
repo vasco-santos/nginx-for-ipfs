@@ -45,20 +45,20 @@ The design of the indexing system considers the following key aspects:
   - The protocol aims to minimize storage and retrieval costs by leveraging compact and structured index formats.
   - Different backends (e.g., file-based, JSON, SQL, external CARv2 indexes) provide flexible storage options.
 
-## Index Types
+## Index Record Types
 
 ### Block-level index
 
-A Block-level index maps a given block multihash to the location where the server can read the bytes of the block. This indexing strategy enables fast responses for clients requesting verifiable blocks by a block CID. However, in some setups, implementing this indexing strategy may be prohibitively expensive (e.g., in databases like DynamoDB) or limited (e.g., due to rate limiting when indexing thousands of blocks in parallel from large containers). Furthermore, these indexes alone are insufficient to serve fully verifiable containers, as they do not maintain relationships between blocks in a DAG.
+A Block-level index record maps a given block multihash to the location where the server can read the bytes of the block. An indexing strategy with these records enables fast responses for clients requesting verifiable blocks by a block CID. However, in some setups, implementing this indexing strategy may be prohibitively expensive (e.g., in databases like DynamoDB) or limited (e.g., due to rate limiting when indexing thousands of blocks in parallel from large containers). Furthermore, these indexes alone are insufficient to serve fully verifiable containers, as they do not maintain relationships between blocks in a DAG.
 
-#### Block-level Type index Schema
+#### Block-level index record Schema
 
 ```ts
-type IndexEntry = Variant<{
-  'index/block@0.1': BlockIndexEntry
+type IndexRecord = Variant<{
+  'index/block@0.1': BlockIndexRecord
 }>
 
-type BlockIndexEntry = {
+type BlockIndexRecord = {
   // hash digest of the block
   multihash: Multihash
   // hash digest of the container containing the block
@@ -74,16 +74,16 @@ type Multihash = bytes
 
 ### Multiple-level index
 
-A Multiple-level index maps a content multihash to a list of verifiable package CIDs containing the blocks that form the DAG for that content (and where they are positioned). This approach allows serving fully verifiable containers efficiently while reducing index store operations by several orders of magnitude. However, this index alone cannot serve block-level requests unless the request includes hints about the content CID context.
+A Multiple-level index record maps a content multihash to a list of verifiable package CIDs containing the blocks that form the DAG for that content (and where they are positioned). This approach allows serving fully verifiable containers efficiently while reducing index store operations by several orders of magnitude. However, this index alone cannot serve block-level requests unless the request includes hints about the content CID context.
 
-#### Multiple-level Type index Schema
+#### Multiple-level index record Schema
 
 ```ts
-type IndexEntry = Variant<{
-  "index/sharded/dag@0.1": ShardedDAGIndexEntry
+type IndexRecord = Variant<{
+  "index/sharded/dag@0.1": ShardedDAGIndexRecord
 }>
 
-type ShardedDAGIndexEntry = {
+type ShardedDAGIndexRecord = {
   // content root CID
   content: Link<any>
   // links to indexes that contain blocks of the content DAG
@@ -132,14 +132,14 @@ The Index Store provides methods for retrieving and storing indexed content.
 ```ts
 import { MultihashDigest } from 'multiformats'
 
-interface IndexStore {
-  get(hash: MultihashDigest): Promise<IndexEntry | null>
-  set(hash: MultihashDigest, entry: IndexEntry): Promise<void>
+interface IndexStore<IndexRecordEntry> {
+  get(hash: MultihashDigest): Promise<IndexRecordEntry | null>
+  set(hash: MultihashDigest, entry: IndexRecordEntry): Promise<void>
 }
 
 type IndexEntry = Variant<{
-  'index/block@0.1': BlockIndexEntry
-  'index/sharded/dag@0.1': ShardedDAGIndexEntry
+  'index/block@0.1': BlockIndexRecord
+  'index/sharded/dag@0.1': ShardedDAGIndexRecord
 }>
 ```
 
@@ -151,26 +151,30 @@ The implementation of the Index interface is fully empowered to decide the Index
 This interface defines how an index is queried to locate content or specific blocks.
 
 ```ts
-import { MultihashDigest } from 'multiformats'
+import { MultihashDigest, UnknownLink } from 'multiformats'
+import { CarReader } from '@ipld/car'
 
-interface Index {
-  // Find the location of a given block by its multihash and optinially the content CID that the block belongs to as context
+interface Index<IndexEntry> {
+  // Index Store for the indexed entries
+  store: IndexStore<IndexEntry>
+
+  // Indexes a given container (CAR File), optionally with the content that is backed by this container.
+  indexContainer(reader: CarReader, contentCID?: UnknownLink): Promise<void>
+
+  // Find the location of a given block by its multihash and optionially the content CID that the block belongs to as context
   findBlockLocation(
     multihash: MultihashDigest,
     contentCID?: UnknownLink
   ): Promise<BlockLocation | null>
 
-  // Find all containers that hold a given content hash
+  // Find all containers that hold a given hash of content
   findContainers(multihash: MultihashDigest): Promise<ContentLocation | null>
-
-  // Get the index type metadata (block-level or multi-level)
-  getType(): 'index/block@0.1' | 'index/sharded/dag@0.1'
 }
 
 type BlockLocation = {
-  container: Multihash
-  offset: Int
-  length: Int
+  container: MultihashDigest
+  offset: number
+  length: number
 }
 
 // Location details for content stored across multiple containers
@@ -185,18 +189,40 @@ type ContentLocation = {
 ### CARv2 Index Store
 
 ```ts
+import { UnknownLink } from 'multiformats'
+
 interface CarV2IndexStore {
-  loadIndex(containerCID: Link<any>): CarV2Index | null
-  storeIndex(containerCID: Link<any>, index: CarV2Index): void
+  loadIndex(containerCID: UnknownLink): CarV2Index | null
+  storeIndex(containerCID: UnknownLink, index: CarV2Index): void
 }
 
 type CarV2Index = {
-  container: Link<any>
+  container: UnknownLink
   blocks: Record<Multihash, BlockLocation>
 }
 ```
 
 ## Relationship Between Components
+
+### Indexing New Content
+
+1. A client requests a given container to be indexed. This container may optionally be associated with a specific Content.
+2. The system determines the appropriate index type (block-level or multi-level) based on configured indexing strategies.
+3. The selected index is generated and stored in the Index Store.
+
+```mermaid
+graph TD;
+    Client -->|Requests container indexing| Indexer;
+    Indexer -->|Selects index type| IndexStore;
+    Indexer -->|Index container| IndexStore;
+
+    subgraph Indexing Process
+        Indexer
+        IndexStore
+    end
+```
+
+### Reading Previously Indexed Content
 
 1. A client requests content using a give Content Resolver.
 2. The Content Resolver queries the appropriate Index (block-level or multi-level).
@@ -227,7 +253,7 @@ For content retrieval, see the [Content Store Specification](./content-store.md)
 
 Different storage backends can be used to store these index formats while fulfilling the schema. The critical queries are determining where a given block is stored (container CID and byte range) or locating all the containers that represent a DAG identified by a given content CID.
 
-### Top-level Index Implementation (block level)
+### Block-level Index Implementation
 
 - **Filesystem-based store (path encoding):**
   - Example: `block...5/index/block@0.1/car..1/0-128`
