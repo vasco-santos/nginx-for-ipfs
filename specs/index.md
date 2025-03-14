@@ -162,13 +162,17 @@ interface Index<IndexEntry> {
   indexContainer(
     blockIterable: AsyncIterable<BlockIndex>,
     containerMultihash: MultihashDigest,
+    // in a multi-level-index this can be used with the content CID from where this container belongs
+    // similar to https://github.com/ipfs/specs/pull/462
     options?: { contextCid?: UnknownLink }
   ): Promise<void>
 
-  // Find the location of a given block by its multihash and optionially the content CID that the block belongs to as context
+  // Find the location of a given block by its multihash, optionally with a context CID that has a relationship with the container.
   findBlockLocation(
     multihash: MultihashDigest,
-    contentCID?: UnknownLink
+    // in a multi-level-index this can be used with the content CID
+    // similar to https://github.com/ipfs/specs/pull/462
+    options?: { contextCid?: UnknownLink }
   ): Promise<BlockLocation | null>
 
   // Find all containers that hold a given hash of content
