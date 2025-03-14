@@ -158,8 +158,12 @@ interface Index<IndexEntry> {
   // Index Store for the indexed entries
   store: IndexStore<IndexEntry>
 
-  // Indexes a given container (CAR File), optionally with the content that is backed by this container.
-  indexContainer(reader: CarReader, contentCID?: UnknownLink): Promise<void>
+  // Indexes a given block iterable, optionally with a context CID that has a relationship with the container.
+  indexContainer(
+    blockIterable: AsyncIterable<BlockIndex>,
+    containerMultihash: MultihashDigest,
+    options?: { contextCid?: UnknownLink }
+  ): Promise<void>
 
   // Find the location of a given block by its multihash and optionially the content CID that the block belongs to as context
   findBlockLocation(
