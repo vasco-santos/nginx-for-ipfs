@@ -35,4 +35,5 @@ jobs:
       - run: pnpm install
       - run: pnpm run build
       - run: pnpm -r --filter @hash-stream/index run lint
-      # - run: pnpm -r --filter @hash-stream/index run attw
+      - run: pnpm -r --filter @hash-stream/index run attw
+      - run: pnpm -r --filter @hash-stream/index test
