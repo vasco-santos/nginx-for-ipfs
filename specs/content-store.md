@@ -22,8 +22,8 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 The Content Store provides structured access to stored data using an indexing layer. It supports both:
 
-- **Block retrieval**: For individual block lookups.
-- **Container retrieval**: For whole DAG lookups.
+- **Blob retrieval**: For individual blob lookups.
+- **Stream retrieval**: For a set of blob lookups.
 
 Retrieval is enabled by the [Index Specification](./index.md), which maintains metadata about stored content.
 
@@ -39,65 +39,42 @@ Retrieval is enabled by the [Index Specification](./index.md), which maintains m
 
 ```ts
 interface ContentStore {
-  // Retrieve a block's raw bytes from its known location
-  getBlock(location: BlockLocation): Uint8Array | null
+  // Retrieve Blob bytes from its known location
+  getBlob(location: Location): Uint8Array | null
 
-  // Retrieve an entire content package given its resolved locations
-  getContent(contentLocation: ContentLocation): AsyncIterable<Uint8Array>
+  // Retrieve an entire package given its resolved locations
+  getStream(locations: Location[]): AsyncIterable<Uint8Array>
 }
 
-// Link https://ipld.io/specs/codecs/dag-json/spec/#links
-type BlockLocation = {
-  container: Link<any>
+type Location = {
+  container: Multihash
   offset: Int
   length: Int
 }
-
-type ContentLocation = {
-  contentCID: Link<any>
-  containers: ContainerLocation[]
-}
 ```
-
-### Verifiable Content Interface
-
-The VerifiableContent interface ensures that retrieved data is verifiable and correctly encoded. It takes content identifiers (CIDs) and retrieves the necessary locations through the Index before accessing the Content Store in order to give back the content.
-
-```ts
-interface VerifiableContent {
-  // Retrieve a block as a raw encoded Block
-  getVerifiableBlock(blockCID: Link<any>): Promise<Block | null>
-
-  // Retrieve content as a CAR file with all blocks from the specified locations
-  getVerifiableContent(contentCID: Link<any>): AsyncIterable<CAR>
-}
-```
-
-- **Blocks**: Resolved via the Index to determine `BlockLocation`, then retrieved as raw-encoded objects from `ContentStore.getBlock`.
-- **Content**: Resolved via the Index to determine `ContentLocation`, then retrieved as a CAR file by reading all blocks from `ContentStore.getContent`.
 
 ## Relationship Between Components
 
-The Content Store, Index, and Verifiable Content interface work together to provide structured and efficient access to stored data:
+A Content Store, Index, and Verifiable Content interface work together to provide structured and efficient access to stored data:
 
 1. **Index Maintains Metadata**
 
-   - The [Index](./index.md) maintains mappings of content identifiers (CIDs) to their storage locations.
-   - When a client requests a block or content via `VerifiableContent`, the Index resolves the corresponding `BlockLocation` or `ContentLocation`.
+   - The [Index](./index.md) maintains mappings of Multihashes to their storage locations.
+   - When a client requests a blob or stream via `VerifiableContent`, the Index resolves the corresponding `BlobLocation`.
 
 2. **Verifiable Content Fetches Data**
 
    - The `VerifiableContent` interface acts as the main entry point for clients requesting content.
-   - It queries the Index to resolve locations and then calls the Content Store for actual data retrieval.
+   - It queries the Index to resolve locations, calls the Content Store for actual data retrieval and packs data into a container.
 
 3. **Content Store Provides Raw Data**
 
-   - Uses the resolved locations from the Index to fetch the required blocks or containers.
+   - Uses the resolved locations from the Index to fetch the required blobs.
    - Supports multiple storage backends for optimized access.
 
 4. **Verifiable Retrieval**
    - Ensures data integrity by returning encoded content that clients can validate.
-   - Blocks are retrieved as raw-encoded objects, and content is packaged as CAR files.
+   - Blobs are retrieved as raw-encoded objects, and stream is packaged as CAR files.
 
 ```mermaid
 graph TD;
@@ -111,7 +88,7 @@ graph TD;
     end
 
     subgraph VerifiableContent
-        C[Resolve CID]
+        C[Resolve Content]
         D[Get Data from Store]
         H[Package Data for Verification]
     end
@@ -121,8 +98,8 @@ graph TD;
         F[Storage Backend: Filesystem, Cloud, etc.]
     end
 
-    A -->|Request CID| C
-    C -->|Lookup CID| B
+    A -->|Request Content| C
+    C -->|Lookup Multihash| B
     B -->|Resolve to Location| D
     D -->|Request Data| E
     E -->|Retrieve from Storage| F
