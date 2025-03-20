@@ -97,8 +97,8 @@ This Location Type can also be used to index containers themselves if desired, b
 import { MultihashDigest } from 'multiformats'
 
 interface IndexStore<IndexRecord> {
-  get(hash: MultihashDigest): Promise<IndexRecord>
-  set(hash: MultihashDigest, entry: IndexRecord): Promise<void>
+  get(hash: MultihashDigest): Promise<IndexRecord[]>
+  set(hash: MultihashDigest, entry: IndexRecord[]): Promise<void>
 }
 
 // Index Record is dependent on the implementation index
