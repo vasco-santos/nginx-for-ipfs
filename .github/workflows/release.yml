@@ -16,5 +16,7 @@ jobs:
       - name: Release Please
         uses: google-github-actions/release-please-action@v4
         with:
-          release-type: node # Use "node" since it's a JS monorepo
+          release-type: manifest
+          config-file: .github/release-please-config.json
+          manifest-file: .github/release-please-manifest.json
           token: ${{ secrets.GITHUB_TOKEN }}
